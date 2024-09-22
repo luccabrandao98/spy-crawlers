@@ -2,7 +2,8 @@ import pandas as pd
 import requests
 from datetime import date
 from bs4 import BeautifulSoup
-from etl.database.db_connection import aws_rds_connection
+import os
+from etl.database.db_connection import AWSDatabase
 
 
 def get_categories_dict(main_url):
@@ -81,10 +82,21 @@ def get_product_data(main_url):
     return product_dict_list
 
 if __name__ == '__main__':
-    connection = aws_rds_connection()
+    
+    username = os.environ['AWS_RDS_USER']
+    password = os.environ['AWS_RDS_KEY']
+    database = 'spy'
+    host = os.environ['AWS_RDS_HOST']
+
+    db = AWSDatabase(username=username, password=password, database=database, host=host)
+    # connection = db.connection()
+
+    data = [{'id': 1, 'test': 'A'}, {'id': 2, 'test': 'B'}]
+
+    db.insert(table_name='test', data=data)
 
     # query = 'select * from test'
     # df = pd.read_sql(query, con=connection)
     # print(df)
-    df = get_product_data(main_url='https://www.outlethangar.com.br')
+    # df = get_product_data(main_url='https://www.outlethangar.com.br')
     

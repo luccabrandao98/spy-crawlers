@@ -1,27 +1,37 @@
 import os
-from sqlalchemy import create_engine, VARCHAR, Float, Date, text
+from sqlalchemy import create_engine, Table, MetaData
 
-def aws_rds_connection():
-    username = os.environ['AWS_RDS_USER']
-    password = os.environ['AWS_RDS_KEY']
-    database = 'spy'
-    host = os.environ['AWS_RDS_HOST']
+class AWSDatabase():
 
-    # Create a connection string
-    connection_string = f'postgresql://{username}:{password}@{host}/{database}'
+    def __init__(self, username, password, database, host):
+        self.username = username
+        self.password = password
+        self.database = database
+        self.host = host
 
-    # Create the engine
-    engine = create_engine(connection_string)
+    def connection(self):
+        connection_string = f'postgresql://{self.username}:{self.password}@{self.host}/{self.database}'
+        engine = create_engine(connection_string)
 
-    # Test the connection
-    try:
-        connection = engine.connect()
-        print("Connection successful!")
-    except Exception as e:
-        print(f"Connection failed! Error: {e}")
+        # Test the connection
+        try:
+            connection = engine.connect()
+            print("Connection successful!")
+        except Exception as e:
+            print(f"Connection failed! Error: {e}")
 
-    # Close the connection
-    engine.dispose()
-    return connection
+        # Close the connection
+        engine.dispose()
+        return connection
+    
+    def insert(self, table_name, data):
+        connection = self.connection()
+        
+        metadata = MetaData()
+        table = Table(table_name, metadata, autoload_with=connection)
 
-aws_rds_connection()
+        try:
+            connection.execute(table.insert(), data)
+            print('Successfully INSERT')
+        except Exception as e:
+            print(f'INSERT failed. Error: {e}')
