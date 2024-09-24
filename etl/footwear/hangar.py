@@ -2,13 +2,16 @@ import pandas as pd
 import requests
 from datetime import date
 from bs4 import BeautifulSoup
+from tqdm import tqdm
 import os
 from etl.database.db_connection import AWSDatabase
-
 
 def get_categories_dict(main_url):
     # Listando as categorias
     response = requests.get(main_url)
+    if response.status_code != 200:
+        raise Exception('Status code != 200')
+
     soup = BeautifulSoup(response.text, 'html.parser')
 
     categories_class = soup.find(class_='categories-list')
@@ -17,7 +20,7 @@ def get_categories_dict(main_url):
 
     # Criando dicionário de categorias
     categories_dict = {}
-    for element in categories_elements:
+    for element in tqdm(categories_elements):
         category_name = element.get_text(strip=True)
         category_href = element.get('href')
 
@@ -29,17 +32,16 @@ def get_product_data(main_url):
     categories = get_categories_dict(main_url)
     product_dict_list = []
 
-    for category in categories:
-        print('Categoria:', category)
+    for category in tqdm(categories):
         page_number = 1
 
         while True:
-            print('Página:', page_number)
             response = requests.get(main_url+categories[category]+f'&page={page_number}')
-            print('Status code:', response.status_code)
-            print('------------------')
-            soup = BeautifulSoup(response.text, 'html.parser')
+            
+            if response.status_code != 200:
+                raise Exception('Status code != 200')
 
+            soup = BeautifulSoup(response.text, 'html.parser')
             products_list = soup.find_all(class_='holder-info')
 
             for product in products_list:
@@ -89,14 +91,15 @@ if __name__ == '__main__':
     host = os.environ['AWS_RDS_HOST']
 
     db = AWSDatabase(username=username, password=password, database=database, host=host)
-    # connection = db.connection()
+    connection = db.connection()
 
-    data = [{'id': 1, 'test': 'A'}, {'id': 2, 'test': 'B'}]
+    df = pd.DataFrame(get_product_data(main_url='https://www.outlethangar.com.br'), index=None)
 
-    db.insert(table_name='test', data=data)
-
-    # query = 'select * from test'
-    # df = pd.read_sql(query, con=connection)
-    # print(df)
-    # df = get_product_data(main_url='https://www.outlethangar.com.br')
-    
+    # Insert no banco
+    df.to_sql(
+        'hangar',
+        schema='footwear',
+        con=connection,
+        if_exists='append',
+        index=None
+    )

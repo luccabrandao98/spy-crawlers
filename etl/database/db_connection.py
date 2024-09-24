@@ -1,5 +1,5 @@
 import os
-from sqlalchemy import create_engine, Table, MetaData
+from sqlalchemy import create_engine
 
 class AWSDatabase():
 
@@ -23,15 +23,3 @@ class AWSDatabase():
         # Close the connection
         engine.dispose()
         return connection
-    
-    def insert(self, table_name, data):
-        connection = self.connection()
-        
-        metadata = MetaData()
-        table = Table(table_name, metadata, autoload_with=connection)
-
-        try:
-            connection.execute(table.insert(), data)
-            print('Successfully INSERT')
-        except Exception as e:
-            print(f'INSERT failed. Error: {e}')
