@@ -7,30 +7,30 @@ env:
 on:
     workflow_dispatch:
         inputs:
-        input:
-            description: 'Dummy input (deixe default)'
-            required: false
-            default: 'Default'
+            input:
+                description: 'Dummy input (deixe default)'
+                required: false
+                default: 'Default'
 
     schedule:
         - cron: '0 10 * * *' # UTC -3, Todo dia 07h00
 
 jobs:
     build:
-    runs-on: ubuntu-latest
-    steps:
-        - name: checkout repo content
-        uses: actions/checkout@v2 # checkout the repository content to github runner
+        runs-on: ubuntu-latest
+        steps:
+            - name: checkout repo content
+              uses: actions/checkout@v2 # checkout the repository content to github runner
 
-        - name: setup python
-        uses: actions/setup-python@v5
-        with:
-            python-version: '3.10' # install the python version needed
-            
-        - name: install python packages
-        run: 
-            make install
-            
-        - name: execute
-        run: 
-            make run
+            - name: setup python
+              uses: actions/setup-python@v5
+              with:
+                  python-version: '3.10' # install the python version needed
+
+            - name: install python packages
+              run: 
+                  make install
+
+            - name: execute
+              run: 
+                  make run
