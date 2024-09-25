@@ -3,3 +3,4 @@ pandas==2.2.3
 Requests==2.32.3
 SQLAlchemy==2.0.25
 tqdm==4.65.0
+psycopg2-binary
